@@ -1,6 +1,7 @@
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+from airflow.utils.trigger_rule import TriggerRule
 from datetime import datetime
 
 start_date = datetime(2020, 1, 1)
@@ -25,6 +26,17 @@ def log_dag_run_start(dag_id, table):
     return '{} start processing tables in database: {}'.format(dag_id, table)
 
 
+def create_table(table_name):
+    print('Creating table {}'.format(table_name))
+
+
+def get_create_table_branch():
+    if True:
+        return 'skip_table_creation'
+    else:
+        return 'create_table'
+
+
 for dag_id in configs:
     config = configs[dag_id]
 
@@ -39,9 +51,23 @@ for dag_id in configs:
             op_kwargs={'dag_id': dag_id, 'table': config[TABLE]}
         )
 
-        insert_new_row_task = DummyOperator(task_id='insert_new_row')
+        create_table_fork = BranchPythonOperator(
+            task_id='create_table_fork',
+            python_callable=get_create_table_branch
+        )
+
+        create_table_task = PythonOperator(
+            task_id='create_table',
+            python_callable=create_table,
+            op_kwargs={'table_name': config[TABLE]}
+        )
+
+        skip_table_creation = DummyOperator(task_id='skip_table_creation')
+
+        insert_new_row_task = DummyOperator(task_id='insert_new_row', trigger_rule=TriggerRule.ALL_DONE)
 
         query_table_task = DummyOperator(task_id='query_table')
 
-        logging_task >> insert_new_row_task >> query_table_task
+        logging_task >> create_table_fork >> [create_table_task,
+                                              skip_table_creation] >> insert_new_row_task >> query_table_task
         globals()[dag_id] = dag
