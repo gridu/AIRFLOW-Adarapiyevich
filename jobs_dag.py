@@ -1,4 +1,5 @@
 from airflow import DAG
+from airflow.operators.bash_operator import BashOperator
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
@@ -51,6 +52,11 @@ for dag_id in configs:
             op_kwargs={'dag_id': dag_id, 'table': config[TABLE]}
         )
 
+        print_current_user_task = BashOperator(
+            task_id='print_current_user',
+            bash_command='echo $USER'
+        )
+
         create_table_fork = BranchPythonOperator(
             task_id='create_table_fork',
             python_callable=get_create_table_branch
@@ -68,6 +74,6 @@ for dag_id in configs:
 
         query_table_task = DummyOperator(task_id='query_table')
 
-        logging_task >> create_table_fork >> [create_table_task,
-                                              skip_table_creation] >> insert_new_row_task >> query_table_task
+        logging_task >> print_current_user_task >> create_table_fork
+        create_table_fork >> [create_table_task, skip_table_creation] >> insert_new_row_task >> query_table_task
         globals()[dag_id] = dag
