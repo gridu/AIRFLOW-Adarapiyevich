@@ -38,6 +38,15 @@ def get_create_table_branch():
         return 'create_table'
 
 
+RUN_ID_ENDED_KEY = 'run_id_ended'
+
+
+def push_run_id(run_id, **kwargs):
+    kwargs['ti'].xcom_push(key=RUN_ID_ENDED_KEY, value='{} ended'.format(run_id))
+
+
+LAST_TASK_ID = 'query_table'
+
 for dag_id in configs:
     config = configs[dag_id]
 
@@ -72,7 +81,12 @@ for dag_id in configs:
 
         insert_new_row_task = DummyOperator(task_id='insert_new_row', trigger_rule=TriggerRule.ALL_DONE)
 
-        query_table_task = DummyOperator(task_id='query_table')
+        query_table_task = PythonOperator(
+            task_id=LAST_TASK_ID,
+            provide_context=True,
+            python_callable=push_run_id,
+            op_kwargs={'run_id': '{{ run_id }}'}
+        )
 
         logging_task >> print_current_user_task >> create_table_fork
         create_table_fork >> [create_table_task, skip_table_creation] >> insert_new_row_task >> query_table_task
