@@ -4,6 +4,7 @@ from datetime import datetime
 from airflow import DAG
 from airflow.hooks.postgres_hook import PostgresHook
 from airflow.operators.dummy_operator import DummyOperator
+from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
 
@@ -29,18 +30,14 @@ def log_dag_run_start(dag_id, table):
     print('{} start processing tables in database: {}'.format(dag_id, table))
 
 
-def create_table(table_name):
-    print('Creating table {}'.format(table_name))
-
-
 def get_create_table_branch(table_name):
     hook = PostgresHook()
-    query = hook.get_first(sql="SELECT 1 FROM information_schema.tables "
-                               "WHERE table_schema='template0' AND table_name='{}';".format(table_name))
-    if query:
-        return 'skip_table_creation'
-    else:
+    query_result = hook.get_first(sql="SELECT 1 FROM information_schema.tables "
+                                      "WHERE table_catalog='airflow_gridu' AND table_name='{}';".format(table_name))
+    if query_result is None:
         return 'create_table'
+    else:
+        return 'skip_table_creation'
 
 
 RUN_ID_ENDED_KEY = 'run_id_ended'
@@ -82,10 +79,12 @@ for dag_id in configs:
             op_args=[config[TABLE]]
         )
 
-        create_table_task = PythonOperator(
+        create_table_task = PostgresOperator(
             task_id='create_table',
-            python_callable=create_table,
-            op_kwargs={'table_name': config[TABLE]}
+            sql='''CREATE TABLE {}(
+                custom_id integer NOT NULL,
+                user_name VARCHAR (50) NOT NULL,
+                timestamp TIMESTAMP NOT NULL);'''.format(config[TABLE])
         )
 
         skip_table_creation = DummyOperator(task_id='skip_table_creation')
