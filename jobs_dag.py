@@ -1,11 +1,11 @@
 import getpass
+from datetime import datetime
 
 from airflow import DAG
-from airflow.operators.bash_operator import BashOperator
+from airflow.hooks.postgres_hook import PostgresHook
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
-from datetime import datetime
 
 start_date = datetime(2020, 1, 1)
 
@@ -26,15 +26,18 @@ default_args = {
 
 
 def log_dag_run_start(dag_id, table):
-    return '{} start processing tables in database: {}'.format(dag_id, table)
+    print('{} start processing tables in database: {}'.format(dag_id, table))
 
 
 def create_table(table_name):
     print('Creating table {}'.format(table_name))
 
 
-def get_create_table_branch():
-    if True:
+def get_create_table_branch(table_name):
+    hook = PostgresHook()
+    query = hook.get_first(sql="SELECT 1 FROM information_schema.tables "
+                               "WHERE table_schema='template0' AND table_name='{}';".format(table_name))
+    if query:
         return 'skip_table_creation'
     else:
         return 'create_table'
@@ -75,7 +78,8 @@ for dag_id in configs:
 
         create_table_fork = BranchPythonOperator(
             task_id='create_table_fork',
-            python_callable=get_create_table_branch
+            python_callable=get_create_table_branch,
+            op_args=[config[TABLE]]
         )
 
         create_table_task = PythonOperator(
