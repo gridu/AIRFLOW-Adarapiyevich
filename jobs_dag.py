@@ -1,4 +1,5 @@
 import getpass
+import random
 from datetime import datetime
 
 from airflow import DAG
@@ -89,7 +90,13 @@ for dag_id in configs:
 
         skip_table_creation = DummyOperator(task_id='skip_table_creation')
 
-        insert_new_row_task = DummyOperator(task_id='insert_new_row', trigger_rule=TriggerRule.ALL_DONE)
+        insert_new_row_task = PostgresOperator(
+            task_id='insert_new_row',
+            sql="INSERT INTO " + config[TABLE] +
+                " VALUES (%s, '{{ ti.xcom_pull(key='current_user', task_ids='print_current_user') }}', %s)",
+            parameters=(random.randint(-2147483648, 2147483647), datetime.now()),
+            trigger_rule=TriggerRule.ALL_DONE
+        )
 
         query_table_task = PythonOperator(
             task_id=LAST_TASK_ID,
