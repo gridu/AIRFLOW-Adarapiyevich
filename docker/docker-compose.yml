@@ -46,3 +46,66 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
+  redis:
+    image: redis:5.0.5
+  worker_1:
+    build: .
+    restart: always
+    depends_on:
+      - postgres
+    volumes:
+      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/dags:/usr/local/airflow/dags
+      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/logs:/usr/local/airflow/logs
+      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/shared:/usr/local/airflow/shared
+    entrypoint: airflow worker -cn worker_1
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-worker.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+  worker_2:
+    build: .
+    restart: always
+    depends_on:
+      - postgres
+    volumes:
+      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/dags:/usr/local/airflow/dags
+      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/logs:/usr/local/airflow/logs
+      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/shared:/usr/local/airflow/shared
+    entrypoint: airflow worker -cn worker_1
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-worker.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+  worker_3:
+    build: .
+    restart: always
+    depends_on:
+      - postgres
+    volumes:
+      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/dags:/usr/local/airflow/dags
+      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/logs:/usr/local/airflow/logs
+      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/shared:/usr/local/airflow/shared
+    entrypoint: airflow worker -cn worker_1
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-worker.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+  flower:
+    build: .
+    restart: always
+    depends_on:
+      - postgres
+    volumes:
+      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/dags:/usr/local/airflow/dags
+      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/logs:/usr/local/airflow/logs
+    entrypoint: airflow flower
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-flower.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    ports:
+      - "5555:5555"

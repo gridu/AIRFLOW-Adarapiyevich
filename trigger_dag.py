@@ -16,7 +16,7 @@ import jobs_dag
 
 trigger_file = Variable.get(key='trigger_file', default_var='/Users/adarapiyevich/Workspace/dag_trigger')
 DAG_TO_TRIGGER = 'process_third_table'
-FINISHED_TS_FILES_DIR = '/usr/local/airflow/finished'
+FINISHED_TS_FILES_DIR = '/usr/local/airflow/shared/finished'
 
 start_date = datetime(2020, 1, 1)
 
@@ -57,7 +57,8 @@ def create_process_results_sub_dag(parent_dag_id, parent_dag_start_date, dag_id_
     def create_file(dir_path, file_name):
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
-        os.mknod('{}/{}'.format(dir_path, file_name))
+        with open('{}/{}'.format(dir_path, file_name), 'w'):
+            pass
 
     sub_dag = DAG(
         dag_id=sub_dag_id,
@@ -76,7 +77,7 @@ def create_process_results_sub_dag(parent_dag_id, parent_dag_start_date, dag_id_
             external_dag_id=dag_id_to_monitor,
             external_task_id=None,
             execution_date_fn=pull_triggered_dag_execution_date,
-            poke_interval=20
+            poke_interval=10
         )
 
         print_results_task = PythonOperator(
