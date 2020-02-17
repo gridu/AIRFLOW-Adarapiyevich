@@ -52,7 +52,13 @@ def push_current_user(**kwargs):
     kwargs['ti'].xcom_push(key='current_user', value=getpass.getuser())
 
 
-LAST_TASK_ID = 'query_table'
+def query_table(table_name, **kwargs):
+    hook = PostgresHook()
+    query_result = hook.get_first(sql='SELECT COUNT(*) AS rows_count FROM {}'.format(table_name))
+    kwargs['ti'].xcom_push(key='rows_count', value=query_result[0])
+
+
+LAST_TASK_ID = 'push_run_id'
 
 for dag_id in configs:
     config = configs[dag_id]
@@ -99,6 +105,13 @@ for dag_id in configs:
         )
 
         query_table_task = PythonOperator(
+            task_id='query_table',
+            python_callable=query_table,
+            op_kwargs={'table_name': config[TABLE]},
+            provide_context=True
+        )
+
+        push_run_id_task = PythonOperator(
             task_id=LAST_TASK_ID,
             provide_context=True,
             python_callable=push_run_id,
@@ -107,4 +120,5 @@ for dag_id in configs:
 
         logging_task >> print_current_user_task >> create_table_fork
         create_table_fork >> [create_table_task, skip_table_creation] >> insert_new_row_task >> query_table_task
+        query_table_task >> push_run_id_task
         globals()[dag_id] = dag
