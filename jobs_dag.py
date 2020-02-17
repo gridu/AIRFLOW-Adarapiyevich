@@ -1,3 +1,5 @@
+import getpass
+
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.dummy_operator import DummyOperator
@@ -45,6 +47,10 @@ def push_run_id(run_id, **kwargs):
     kwargs['ti'].xcom_push(key=RUN_ID_ENDED_KEY, value='{} ended'.format(run_id))
 
 
+def push_current_user(**kwargs):
+    kwargs['ti'].xcom_push(key='current_user', value=getpass.getuser())
+
+
 LAST_TASK_ID = 'query_table'
 
 for dag_id in configs:
@@ -61,9 +67,10 @@ for dag_id in configs:
             op_kwargs={'dag_id': dag_id, 'table': config[TABLE]}
         )
 
-        print_current_user_task = BashOperator(
+        print_current_user_task = PythonOperator(
             task_id='print_current_user',
-            bash_command='echo $USER'
+            python_callable=push_current_user,
+            provide_context=True
         )
 
         create_table_fork = BranchPythonOperator(
