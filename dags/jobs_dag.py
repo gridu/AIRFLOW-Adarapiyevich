@@ -9,6 +9,8 @@ from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
 
+from custom_operators import RowCountPostgresOperator
+
 start_date = datetime(2020, 1, 1)
 
 SCHEDULE_INTERVAL = 'schedule_interval'
@@ -50,12 +52,6 @@ def push_run_id(run_id, **kwargs):
 
 def push_current_user(**kwargs):
     kwargs['ti'].xcom_push(key='current_user', value=getpass.getuser())
-
-
-def query_table(table_name, **kwargs):
-    hook = PostgresHook()
-    query_result = hook.get_first(sql='SELECT COUNT(*) AS rows_count FROM {}'.format(table_name))
-    kwargs['ti'].xcom_push(key='rows_count', value=query_result[0])
 
 
 LAST_TASK_ID = 'push_run_id'
@@ -104,11 +100,9 @@ for dag_id in configs:
             trigger_rule=TriggerRule.ALL_DONE
         )
 
-        query_table_task = PythonOperator(
+        query_table_task = RowCountPostgresOperator(
             task_id='query_table',
-            python_callable=query_table,
-            op_kwargs={'table_name': config[TABLE]},
-            provide_context=True
+            table_name=config[TABLE]
         )
 
         push_run_id_task = PythonOperator(

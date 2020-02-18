@@ -23,6 +23,7 @@ services:
       - postgres
     volumes:
       - /Users/adarapiyevich/Workspace/airflow_gridu/dags:/usr/local/airflow/dags
+      - /Users/adarapiyevich/Workspace/airflow_gridu/plugins:/usr/local/airflow/plugins
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/logs:/usr/local/airflow/logs
     ports:
       - "8080:8080"
@@ -39,6 +40,7 @@ services:
       - postgres
     volumes:
       - /Users/adarapiyevich/Workspace/airflow_gridu/dags:/usr/local/airflow/dags
+      - /Users/adarapiyevich/Workspace/airflow_gridu/plugins:/usr/local/airflow/plugins
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/logs:/usr/local/airflow/logs
     entrypoint: airflow scheduler
     healthcheck:
@@ -55,6 +57,7 @@ services:
       - postgres
     volumes:
       - /Users/adarapiyevich/Workspace/airflow_gridu/dags:/usr/local/airflow/dags
+      - /Users/adarapiyevich/Workspace/airflow_gridu/plugins:/usr/local/airflow/plugins
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/logs:/usr/local/airflow/logs
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/shared:/usr/local/airflow/shared
     entrypoint: airflow worker -cn worker_1
@@ -70,6 +73,7 @@ services:
       - postgres
     volumes:
       - /Users/adarapiyevich/Workspace/airflow_gridu/dags:/usr/local/airflow/dags
+      - /Users/adarapiyevich/Workspace/airflow_gridu/plugins:/usr/local/airflow/plugins
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/logs:/usr/local/airflow/logs
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/shared:/usr/local/airflow/shared
     entrypoint: airflow worker -cn worker_1
@@ -85,6 +89,7 @@ services:
       - postgres
     volumes:
       - /Users/adarapiyevich/Workspace/airflow_gridu/dags:/usr/local/airflow/dags
+      - /Users/adarapiyevich/Workspace/airflow_gridu/plugins:/usr/local/airflow/plugins
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/logs:/usr/local/airflow/logs
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/shared:/usr/local/airflow/shared
     entrypoint: airflow worker -cn worker_1
