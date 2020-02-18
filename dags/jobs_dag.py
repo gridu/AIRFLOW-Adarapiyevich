@@ -9,7 +9,7 @@ from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
 
-from custom_operators import RowCountPostgresOperator
+from airflow.operators.row_count_postgres import RowCountPostgresOperator
 
 start_date = datetime(2020, 1, 1)
 

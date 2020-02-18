@@ -1,5 +1,6 @@
 from airflow.hooks.postgres_hook import PostgresHook
 from airflow.models import BaseOperator
+from airflow.plugins_manager import AirflowPlugin
 from airflow.utils.decorators import apply_defaults
 
 
@@ -15,3 +16,8 @@ class RowCountPostgresOperator(BaseOperator):
         sql = 'SELECT COUNT(*) FROM {}'.format(self.table_name)
         rows_count = self.hook.get_first(sql=sql)[0]
         context['ti'].xcom_push(key='rows_count', value=rows_count)
+
+
+class RowCountPostgresPlugin(AirflowPlugin):
+    name = 'row_count_postgres'
+    operators = [RowCountPostgresOperator]
