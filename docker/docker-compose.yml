@@ -22,7 +22,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/dags:/usr/local/airflow/dags
+      - /Users/adarapiyevich/Workspace/airflow_gridu/dags:/usr/local/airflow/dags
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/logs:/usr/local/airflow/logs
     ports:
       - "8080:8080"
@@ -38,7 +38,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/dags:/usr/local/airflow/dags
+      - /Users/adarapiyevich/Workspace/airflow_gridu/dags:/usr/local/airflow/dags
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/logs:/usr/local/airflow/logs
     entrypoint: airflow scheduler
     healthcheck:
@@ -54,7 +54,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/dags:/usr/local/airflow/dags
+      - /Users/adarapiyevich/Workspace/airflow_gridu/dags:/usr/local/airflow/dags
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/logs:/usr/local/airflow/logs
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/shared:/usr/local/airflow/shared
     entrypoint: airflow worker -cn worker_1
@@ -69,7 +69,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/dags:/usr/local/airflow/dags
+      - /Users/adarapiyevich/Workspace/airflow_gridu/dags:/usr/local/airflow/dags
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/logs:/usr/local/airflow/logs
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/shared:/usr/local/airflow/shared
     entrypoint: airflow worker -cn worker_1
@@ -84,7 +84,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/dags:/usr/local/airflow/dags
+      - /Users/adarapiyevich/Workspace/airflow_gridu/dags:/usr/local/airflow/dags
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/logs:/usr/local/airflow/logs
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/shared:/usr/local/airflow/shared
     entrypoint: airflow worker -cn worker_1
@@ -99,7 +99,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/dags:/usr/local/airflow/dags
+      - /Users/adarapiyevich/Workspace/airflow_gridu/dags:/usr/local/airflow/dags
       - /Users/adarapiyevich/Workspace/airflow_files/airflow_gridu/logs:/usr/local/airflow/logs
     entrypoint: airflow flower
     healthcheck:

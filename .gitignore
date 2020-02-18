@@ -1,3 +1,4 @@
 .idea
 airflow
 venv
+dags/__pycache__/
