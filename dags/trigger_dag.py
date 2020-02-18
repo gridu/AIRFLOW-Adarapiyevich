@@ -1,15 +1,15 @@
 import os
+from datetime import datetime
 
 from airflow import DAG
 from airflow.contrib.sensors.file_sensor import FileSensor
-from airflow.models import Variable, XCom, DagRun
+from airflow.models import Variable, DagRun
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.dagrun_operator import TriggerDagRunOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.sensors import ExternalTaskSensor
 from airflow.operators.subdag_operator import SubDagOperator
 from airflow.utils.db import provide_session
-from datetime import datetime
 from sqlalchemy import func
 
 import jobs_dag
@@ -32,17 +32,11 @@ def create_process_results_sub_dag(parent_dag_id, parent_dag_start_date, dag_id_
     push_triggered_dag_execution_date_task_id = 'push_triggered_dag_execution_date'
 
     @provide_session
-    def push_triggered_dag_execution_date(session, **kwargs):
+    def pull_triggered_dag_execution_date(self_dag_execution_date, session):
         query_result = session.query(func.max(DagRun.execution_date).label('latest_execution_date')) \
             .filter(DagRun.dag_id == dag_id_to_monitor) \
             .one()
-        kwargs['ti'].xcom_push(key=latest_execution_date_key, value=query_result.latest_execution_date)
-
-    def pull_triggered_dag_execution_date(self_dag_execution_date):
-        return XCom.get_one(execution_date=self_dag_execution_date,
-                            dag_id=sub_dag_id,
-                            task_id=push_triggered_dag_execution_date_task_id,
-                            key=latest_execution_date_key)
+        return query_result.latest_execution_date
 
     def print_process_table_results(process_table_dag, **kwargs):
         message = kwargs['ti'].xcom_pull(
@@ -66,12 +60,6 @@ def create_process_results_sub_dag(parent_dag_id, parent_dag_start_date, dag_id_
         default_args=default_args
     )
     with sub_dag:
-        push_triggered_dag_execution_date_task = PythonOperator(
-            task_id=push_triggered_dag_execution_date_task_id,
-            provide_context=True,
-            python_callable=push_triggered_dag_execution_date
-        )
-
         wait_for_triggered_dag_completion_sensor = ExternalTaskSensor(
             task_id='wait_for_table_processing_completion',
             external_dag_id=dag_id_to_monitor,
@@ -98,7 +86,7 @@ def create_process_results_sub_dag(parent_dag_id, parent_dag_start_date, dag_id_
             op_kwargs={'dir_path': FINISHED_TS_FILES_DIR, 'file_name': '{{ ts_nodash }}'}
         )
 
-        push_triggered_dag_execution_date_task >> wait_for_triggered_dag_completion_sensor >> print_results_task
+        wait_for_triggered_dag_completion_sensor >> print_results_task
         print_results_task >> remove_trigger_file_task >> create_timestamp_file
 
     return sub_dag
